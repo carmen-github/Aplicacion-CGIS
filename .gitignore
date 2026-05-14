@@ -1,0 +1,23 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de SO
+.DS_Store
+Thumbs.db
+
+# Configuración de VS Code
+.vscode/
+
+# Bases de datos locales
+*.db
+*.sqlite3
