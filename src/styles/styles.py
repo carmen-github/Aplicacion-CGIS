@@ -66,6 +66,31 @@ def apply_styles():
         foreground=TEXT_WHITE,
         font=(FONT, 16, 'bold'),
     )
+    style.configure('MainMenuTitle.TLabel',
+        background=BG_DARK,
+        foreground=TEXT_WHITE,
+        font=(FONT, 36, 'bold'),
+    )
+    style.configure('MainMenuIcon.TLabel',
+        background=BG_DARK,
+        foreground=TEXT_WHITE,
+        font=(FONT, 80),
+    )
+    style.configure('MainMenuText.TLabel',
+        background=BG_DARK,
+        foreground=TEXT_WHITE,
+        font=(FONT, 18, 'bold'),
+    )
+    style.configure('MainMenuIconHover.TLabel',
+        background=BG_DARK,
+        foreground=ACCENT_BLUE,
+        font=(FONT, 80),
+    )
+    style.configure('MainMenuTextHover.TLabel',
+        background=BG_DARK,
+        foreground=ACCENT_BLUE,
+        font=(FONT, 18, 'bold'),
+    )
 
     # ── Botones generales (azul) ───────────────────────────────────────────
     style.configure('TButton',
@@ -189,4 +214,7 @@ def apply_styles():
         background=[('selected', ACCENT_BLUE)],
         foreground=[('selected', TEXT_WHITE)],
     )
-    
+
+def apply_window_style(window):
+    """Aplica el color de fondo a una ventana Tk o Toplevel."""
+    window.configure(bg=BG_DARK)

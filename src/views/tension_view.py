@@ -2,8 +2,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from esquemas.tension_view_schema import TensionViewSchema
 from pydantic import ValidationError
-from styles.styles import BG_DARK, BG_INPUT
+from styles.styles import apply_window_style
 from views.components.toast import show_toast
+from views.components.action_buttons import ActionButtons
 
 
 class TensionView(ttk.Frame):
@@ -60,9 +61,13 @@ class TensionView(ttk.Frame):
         # Actions
         btn_frame = ttk.Frame(self)
         btn_frame.pack(pady=15)
-        ttk.Button(btn_frame, text="Dar de alta", command=self.add_tension, style='Success.TButton').pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="Editar", command=self.edit_tension).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="Dar de baja", command=self.delete_tension, style='Danger.TButton').pack(side=tk.LEFT, padx=5)
+        
+        ActionButtons(
+            btn_frame,
+            on_add=self.add_tension,
+            on_edit=self.edit_tension,
+            on_delete=self.delete_tension
+        ).pack()
 
     def _on_header_click(self, col):
         """Gestiona la ordenación al hacer clic en las cabeceras."""
@@ -173,7 +178,7 @@ class AddEditTensionDialog:
         self.tension = tension  # dict con datos o None para alta
         self.top = tk.Toplevel(parent)
         self.top.title("Editar Tensión" if tension else "Dar de alta Tensión")
-        self.top.configure(bg=BG_DARK)
+        apply_window_style(self.top)
         self.top.resizable(False, False)
         self.create_form()
         if tension:
@@ -214,10 +219,10 @@ class AddEditTensionDialog:
 
     def save(self):
         try:
-            id_paciente = self.id_paciente_var.get().strip()
-            estado = self.estado_var.get().strip()
-            fecha = self.fecha_var.get().strip()
-            valoracion = self.valoracion_var.get().strip()
+            id_paciente = self.id_paciente_var.get()
+            estado = self.estado_var.get()
+            fecha = self.fecha_var.get()
+            valoracion = self.valoracion_var.get()
             valor_en_rango = self.valor_en_rango_var.get()
 
             # 1ª validación: formulario (campos presentes, formato básico)
@@ -235,13 +240,13 @@ class AddEditTensionDialog:
             # 2ª validación: reglas de negocio (a través del servicio/schema de alta)
             if self.tension:
                 self.controller.update(str(self.tension['_id']), {
-                    'id_paciente': id_paciente, 'estado': estado,
-                    'fecha': fecha, 'valoracion': valoracion,
+                    'id_paciente': id_paciente.strip(), 'estado': estado.strip(),
+                    'fecha': fecha.strip(), 'valoracion': valoracion.strip(),
                     'valor_en_rango': valor_en_rango,
                     'valores': self.tension.get('valores', {}),
                 })
             else:
-                self.controller.create(id_paciente, estado, fecha, valoracion, valor_en_rango)
+                self.controller.create(id_paciente.strip(), estado.strip(), fecha.strip(), valoracion.strip(), valor_en_rango)
 
             self.parent.load_data()
             show_toast(self.parent.winfo_toplevel(), 

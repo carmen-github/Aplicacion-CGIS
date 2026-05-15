@@ -1,10 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from styles.styles import (
-    BG_DARK, BG_CARD, ACCENT_BLUE, ACCENT_RED, TEXT_WHITE, TEXT_MUTED,
-    BORDER_COLOR, FONT
-)
-
 
 class MainWindow:
     """Ventana principal. Gestiona el contenedor y la navegación entre pantallas."""
@@ -26,7 +21,6 @@ class MainWindow:
         self.root.geometry("960x620")
         self.root.resizable(True, True)
         self.root.minsize(800, 520)
-        self.root.configure(bg=BG_DARK)
 
     def _center_window(self):
         """Centra la ventana en la pantalla al arrancar."""
@@ -42,7 +36,7 @@ class MainWindow:
     # ── Construcción del contenedor principal ──────────────────────────────
     def _build_container(self):
         """Crea el contenedor raíz donde se apilan todas las pantallas."""
-        self.container = tk.Frame(self.root, bg=BG_DARK)
+        self.container = ttk.Frame(self.root, style='TFrame')
         self.container.pack(fill=tk.BOTH, expand=True)
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)

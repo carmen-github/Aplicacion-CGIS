@@ -2,8 +2,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from esquemas.patient_view_schema import PatientViewSchema
 from pydantic import ValidationError
-from styles.styles import BG_DARK, BG_INPUT
+from styles.styles import apply_window_style
 from views.components.toast import show_toast
+from views.components.action_buttons import ActionButtons
 
 
 class PatientView(ttk.Frame):
@@ -57,10 +58,14 @@ class PatientView(ttk.Frame):
         # Actions
         btn_frame = ttk.Frame(self)
         btn_frame.pack(pady=15)
-        ttk.Button(btn_frame, text="Dar de alta", command=self.add_patient, style='Success.TButton').pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="Editar", command=self.edit_patient).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="Ver Historial", command=self.view_history).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="Dar de baja", command=self.delete_patient, style='Danger.TButton').pack(side=tk.LEFT, padx=5)
+        
+        ActionButtons(
+            btn_frame,
+            on_add=self.add_patient,
+            on_edit=self.edit_patient,
+            on_history=self.view_history,
+            on_delete=self.delete_patient
+        ).pack()
 
     def view_history(self):
         selected = self.tree.selection()
@@ -162,7 +167,7 @@ class AddEditPatientDialog:
         self.patient = patient  # dict con datos o None para alta
         self.top = tk.Toplevel(parent)
         self.top.title("Editar Paciente" if patient else "Dar de alta Paciente")
-        self.top.configure(bg=BG_DARK)
+        apply_window_style(self.top)
         self.top.resizable(False, False)
         self.create_form()
         if patient:
@@ -198,10 +203,10 @@ class AddEditPatientDialog:
 
     def save(self):
         try:
-            nombre = self.nombre_var.get().strip()
-            apellido = self.apellido_var.get().strip()
+            nombre = self.nombre_var.get()
+            apellido = self.apellido_var.get()
             genero = self.genero_var.get()
-            fechaNacimiento = self.fechaNacimiento_var.get().strip()
+            fechaNacimiento = self.fechaNacimiento_var.get()
 
             # 1ª validación: formulario (campos presentes, formato básico)
             try:
@@ -217,11 +222,11 @@ class AddEditPatientDialog:
             # 2ª validación: reglas de negocio (a través del servicio/schema de alta)
             if self.patient:
                 self.controller.update(str(self.patient['_id']), {
-                    'nombre': nombre, 'apellido': apellido,
-                    'genero': genero, 'fechaNacimiento': fechaNacimiento,
+                    'nombre': nombre.strip(), 'apellido': apellido.strip(),
+                    'genero': genero.strip(), 'fechaNacimiento': fechaNacimiento.strip(),
                 })
             else:
-                self.controller.create(nombre, apellido, genero, fechaNacimiento)
+                self.controller.create(nombre.strip(), apellido.strip(), genero.strip(), fechaNacimiento.strip())
 
             self.parent.load_data()
             show_toast(self.parent.winfo_toplevel(), 
