@@ -20,4 +20,11 @@ class AltaPaciente:
             )
         except ValidationError as e:
             raise ValueError('\n'.join(extraer_errores(e)))
+        
+        existente = self.repository.find_duplicate(
+            schema.nombre, schema.apellido, schema.genero, schema.fechaNacimiento
+        )
+        if existente:
+            raise ValueError("No se puede crear: Ya existe un paciente con los mismos datos.")
+
         return self.repository.insert(schema.model_dump())

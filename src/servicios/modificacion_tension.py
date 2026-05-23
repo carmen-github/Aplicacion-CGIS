@@ -19,12 +19,10 @@ class ModificacionTension:
                 estado=data.get('estado', ''),
                 fecha=data.get('fecha', ''),
                 valoracion=data.get('valoracion', ''),
-                valor_en_rango=data.get('valor_en_rango', False)
+                valor_en_rango=data.get('valor_en_rango', False),
+                valores=data.get('valores', {})
             )
         except ValidationError as e:
             raise ValueError('\n'.join(extraer_errores(e)))
         update_data = schema.model_dump()
-        # Preserva el campo 'valores' si existía
-        if 'valores' in data:
-            update_data['valores'] = data['valores']
         self.repository.update(id, update_data)

@@ -32,6 +32,17 @@ class PatientRepository:
         """Busca un paciente por su _id. Devuelve dict o None."""
         return self.collection.find_one({'_id': _parse_id(id)})
 
+    def find_duplicate(self, nombre: str, apellido: str, genero: str, fecha_nacimiento) -> dict | None:
+        """Busca un paciente existente con los mismos datos principales."""
+        import re
+        query = {
+            'nombre': {'$regex': f'^{re.escape(nombre.strip())}$', '$options': 'i'},
+            'apellido': {'$regex': f'^{re.escape(apellido.strip())}$', '$options': 'i'},
+            'genero': genero,
+            'fechaNacimiento': fecha_nacimiento,
+        }
+        return self.collection.find_one(query)
+
     def update(self, id, data: dict):
         """Actualiza un paciente existente (excluye _id del $set)."""
         update_data = {k: v for k, v in data.items() if k != '_id'}

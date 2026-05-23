@@ -1,20 +1,23 @@
 from datetime import datetime
+from typing import Annotated
 from pydantic import BaseModel, Field, field_validator
 
 
 class TensionAltaSchema(BaseModel):
     """Validación de alta (negocio): reglas completas antes de persistir."""
-    id_paciente: str = Field(..., min_length=1)
+    id_paciente: Annotated[str, Field(min_length=1)]
     estado: str
     fecha: str
-    valoracion: str = Field(..., min_length=1)
+    valoracion: Annotated[str, Field(min_length=1)]
     valor_en_rango: bool
+    valores: dict = Field(default_factory=dict)
 
     @field_validator('estado')
     @classmethod
     def validar_estado(cls, v):
-        if v.lower() not in ('preliminar', 'final', 'corregido'):
-            raise ValueError("El estado debe ser: preliminar, final, corregido.")
+        fhir_states = ('registered', 'preliminary', 'final', 'amended', 'corrected', 'cancelled', 'entered-in-error', 'unknown')
+        if v.lower() not in fhir_states:
+            raise ValueError(f"El estado debe ser uno de: {', '.join(fhir_states)}.")
         return v.lower()
 
     @field_validator('fecha')

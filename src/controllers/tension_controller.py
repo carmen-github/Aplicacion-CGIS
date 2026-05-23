@@ -17,9 +17,9 @@ class TensionController:
         self.modificacion = ModificacionTension(repository)
         self.consulta = ConsultaTension(repository)
 
-    def create(self, id_paciente, estado, fecha, valoracion, valor_en_rango) -> dict:
+    def create(self, id_paciente, estado, fecha, valoracion, valor_en_rango, valores=None) -> dict:
         """Dar de alta una tensión. Devuelve el dict creado."""
-        return self.alta.ejecutar(id_paciente, estado, fecha, valoracion, valor_en_rango)
+        return self.alta.ejecutar(id_paciente, estado, fecha, valoracion, valor_en_rango, valores)
 
     def read_all(self) -> list:
         """Consultar todas las tensiones como lista de dicts."""
@@ -40,3 +40,7 @@ class TensionController:
     def delete(self, id):
         """Dar de baja una tensión."""
         self.baja.ejecutar(id)
+
+    def study_by_patient(self, id_paciente, ultimas_n: int | None = None) -> dict:
+        """Calcula un estudio de tensiones para un paciente."""
+        return self.consulta.obtener_estudio_por_paciente(id_paciente, ultimas_n)

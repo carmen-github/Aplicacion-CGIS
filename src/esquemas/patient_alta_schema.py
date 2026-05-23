@@ -1,11 +1,12 @@
 from datetime import datetime
+from typing import Annotated
 from pydantic import BaseModel, Field, field_validator
 
 
 class PatientAltaSchema(BaseModel):
     """Validación de alta (negocio): reglas completas antes de persistir."""
-    nombre: str = Field(..., min_length=2)
-    apellido: str = Field(..., min_length=2)
+    nombre: Annotated[str, Field(min_length=2)]
+    apellido: Annotated[str, Field(min_length=2)]
     genero: str
     fechaNacimiento: str
 

@@ -1,12 +1,13 @@
+from typing import Annotated
 from pydantic import BaseModel, Field, field_validator
 
 
 class TensionViewSchema(BaseModel):
     """Validación de formulario (vista): solo comprueba presencia y formato básico."""
-    id_paciente: str = Field(..., min_length=1)
-    estado: str = Field(..., min_length=1)
-    fecha: str = Field(..., min_length=1)
-    valoracion: str = Field(..., min_length=1)
+    id_paciente: Annotated[str, Field(min_length=1)]
+    estado: Annotated[str, Field(min_length=1)]
+    fecha: Annotated[str, Field(min_length=1)]
+    valoracion: Annotated[str, Field(min_length=1)]
     valor_en_rango: bool
 
     @field_validator('fecha')

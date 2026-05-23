@@ -14,6 +14,7 @@ if os.path.isdir(_tk):
 from database.connection import DatabaseConnection
 from controllers.patient_controller import PatientController
 from controllers.tension_controller import TensionController
+from controllers.lista_controller import ListaController
 from views.main_window import MainWindow
 from styles.styles import apply_styles, apply_window_style
 
@@ -22,12 +23,13 @@ class App:
         self.db = DatabaseConnection()
         self.patient_ctrl = PatientController(self.db)
         self.tension_ctrl = TensionController(self.db)
+        self.lista_ctrl = ListaController(self.db)
         
         self.root = tk.Tk()
         apply_styles()  # debe llamarse DESPUÉS de crear tk.Tk()
         apply_window_style(self.root)
         
-        self.main_window = MainWindow(self.root, self.patient_ctrl, self.tension_ctrl)
+        self.main_window = MainWindow(self.root, self.patient_ctrl, self.tension_ctrl, self.lista_ctrl)
 
     def run(self):
         self.root.mainloop()

@@ -1,16 +1,20 @@
 import tkinter as tk
+from datetime import datetime
 from tkinter import ttk, messagebox
 from esquemas.patient_view_schema import PatientViewSchema
 from pydantic import ValidationError
 from styles.styles import apply_window_style
 from views.components.toast import show_toast
 from views.components.action_buttons import ActionButtons
+from views.list_dialog import AddEditListDialog as AddEditListRequestDialog
 
 
 class PatientView(ttk.Frame):
-    def __init__(self, parent, controller, on_back=None, on_show_tensions=None):
+    def __init__(self, parent, controller, tension_controller, list_controller, on_back=None, on_show_tensions=None):
         super().__init__(parent)
         self.controller = controller
+        self.tension_controller = tension_controller
+        self.list_controller = list_controller
         self.on_back = on_back
         self.on_show_tensions = on_show_tensions
         self.all_data = []
@@ -65,7 +69,9 @@ class PatientView(ttk.Frame):
             on_edit=self.edit_patient,
             on_history=self.view_history,
             on_delete=self.delete_patient
-        ).pack()
+        ).pack(side=tk.LEFT)
+
+        ttk.Button(btn_frame, text="Solicitar toma de tensión", command=self.request_tension_service).pack(side=tk.LEFT, padx=5)
 
     def view_history(self):
         selected = self.tree.selection()
@@ -158,6 +164,106 @@ class PatientView(ttk.Frame):
             self.controller.delete(id_str)
             self.load_data()
             show_toast(self.winfo_toplevel(), "Paciente eliminado correctamente", type="success")
+
+    def request_tension_service(self):
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showwarning("Advertencia", "Selecciona un paciente para solicitar una toma de tensión.")
+            return
+
+        item = selected[0]
+        id_str = self.tree.item(item, 'tags')[0]
+        patient = self.controller.read_by_id(id_str)
+        if not patient:
+            messagebox.showerror("Error", f"No se pudo encontrar el paciente con ID {id_str}")
+            return
+
+        now = datetime.now().replace(second=0, microsecond=0).isoformat(timespec='minutes')
+        record = {
+            'id_paciente': id_str,
+            'fechaHora': now,
+            'servicio': 'enfermeria',
+            'estado': 'pendiente',
+            'patron': 'unico',
+            'repeticiones': 1,
+        }
+        AddEditListRequestDialog(
+            self,
+            self.list_controller,
+            self.controller,
+            record,
+            patient_id=id_str,
+            patient_name=f"{patient.get('nombre', '')} {patient.get('apellido', '')}",
+            on_saved=self.load_data,
+        )
+
+
+class EstudioTensionDialog:
+    def __init__(self, parent, tension_controller, patient_id, patient_name):
+        self.parent = parent
+        self.tension_controller = tension_controller
+        self.patient_id = patient_id
+        self.patient_name = patient_name
+        self.top = tk.Toplevel(parent)
+        self.top.title(f"Estudio de tensiones - {patient_name}")
+        apply_window_style(self.top)
+        self.top.resizable(False, False)
+        self.create_widgets()
+        self.update_metrics()
+
+    def create_widgets(self):
+        ttk.Label(self.top, text=f"Paciente: {self.patient_name}", font=('Segoe UI', 11, 'bold')).pack(padx=10, pady=(10, 0))
+
+        form_frame = ttk.Frame(self.top)
+        form_frame.pack(fill=tk.X, padx=10, pady=10)
+
+        ttk.Label(form_frame, text="Últimas n tomas (vacío = todas):").grid(row=0, column=0, sticky='w', padx=5, pady=5)
+        self.ultimas_n_var = tk.StringVar()
+        ttk.Entry(form_frame, textvariable=self.ultimas_n_var, width=10).grid(row=0, column=1, sticky='w', padx=5, pady=5)
+
+        ttk.Button(form_frame, text="Calcular", command=self.update_metrics).grid(row=0, column=2, padx=5, pady=5)
+
+        self.result_frame = ttk.LabelFrame(self.top, text="Resultados del estudio")
+        self.result_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+
+        self.labels = {}
+        for idx, label_text in enumerate([
+            "Total de tomas registradas:",
+            "Tomas utilizadas en el cálculo:",
+            "Media sistólica:",
+            "Media diastólica:",
+            "Última toma:",
+        ]):
+            ttk.Label(self.result_frame, text=label_text).grid(row=idx, column=0, sticky='w', padx=5, pady=5)
+            self.labels[label_text] = ttk.Label(self.result_frame, text="-")
+            self.labels[label_text].grid(row=idx, column=1, sticky='w', padx=5, pady=5)
+
+        ttk.Button(self.top, text="Cerrar", command=self.top.destroy).pack(pady=(0, 10))
+
+    def update_metrics(self):
+        raw_n = self.ultimas_n_var.get().strip()
+        ultimas_n = None
+        if raw_n:
+            try:
+                ultimas_n = int(raw_n)
+                if ultimas_n <= 0:
+                    raise ValueError
+            except ValueError:
+                messagebox.showerror("Entrada inválida", "Introduce un número positivo para las últimas tomas.")
+                return
+
+        estudio = self.tension_controller.study_by_patient(self.patient_id, ultimas_n)
+        ultima = estudio.get('ultima_toma')
+        ultima_text = "No hay tomas" if not ultima else (
+            f"{str(ultima.get('fecha', ''))[:10]} - {ultima.get('valoracion', '')} "
+            f"(S:{ultima.get('valores', {}).get('sistolica', '-')}, D:{ultima.get('valores', {}).get('diastolica', '-')})"
+        )
+
+        self.labels["Total de tomas registradas:"].config(text=str(estudio.get('total_tomas', 0)))
+        self.labels["Tomas utilizadas en el cálculo:"].config(text=str(estudio.get('tomas_utilizadas', 0)))
+        self.labels["Media sistólica:"].config(text=f"{estudio.get('media_sistolica'):.1f}" if estudio.get('media_sistolica') is not None else "-")
+        self.labels["Media diastólica:"].config(text=f"{estudio.get('media_diastolica'):.1f}" if estudio.get('media_diastolica') is not None else "-")
+        self.labels["Última toma:"].config(text=ultima_text)
 
 
 class AddEditPatientDialog:

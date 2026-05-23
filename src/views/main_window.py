@@ -1,13 +1,16 @@
 import tkinter as tk
 from tkinter import ttk
 
+from views.list_view import ListView
+
 class MainWindow:
     """Ventana principal. Gestiona el contenedor y la navegación entre pantallas."""
 
-    def __init__(self, root, patient_ctrl, tension_ctrl):
+    def __init__(self, root, patient_ctrl, tension_ctrl, lista_ctrl):
         self.root = root
         self.patient_ctrl = patient_ctrl
         self.tension_ctrl = tension_ctrl
+        self.lista_ctrl = lista_ctrl
 
         self._configure_root()
         self._center_window()
@@ -53,6 +56,7 @@ class MainWindow:
             self.container,
             on_patients=lambda: self._show_patients(),
             on_tensions=lambda: self._show_tensions(),
+            on_lists=lambda: self._show_lists()
         )
         menu_frame.grid(row=0, column=0, sticky='nsew')
         self.frames['menu'] = menu_frame
@@ -60,6 +64,8 @@ class MainWindow:
         patient_frame = PatientView(
             self.container,
             self.patient_ctrl,
+            self.tension_ctrl,
+            self.lista_ctrl,
             on_back=lambda: self.show_frame('menu'),
             on_show_tensions=lambda p_id: self._show_tensions_for_patient(p_id)
         )
@@ -70,10 +76,19 @@ class MainWindow:
             self.container,
             self.tension_ctrl,
             self.patient_ctrl,
+            self.lista_ctrl,
             on_back=lambda: self.show_frame('menu'),
         )
         tension_frame.grid(row=0, column=0, sticky='nsew')
         self.frames['tensions'] = tension_frame
+
+        lista_frame = ListView(
+            self.container,
+            self.lista_ctrl,
+            on_back=lambda: self.show_frame('menu'),
+        )
+        lista_frame.grid(row=0, column=0, sticky='nsew')
+        self.frames['lists'] = lista_frame
 
     # ── Navegación ─────────────────────────────────────────────────────────
     def show_frame(self, name: str):
@@ -92,6 +107,11 @@ class MainWindow:
         # Al venir del menú, "Volver" lleva al menú
         self.frames['tensions'].on_back = lambda: self.show_frame('menu')
         self.show_frame('tensions')
+
+    def _show_lists(self):
+        self.frames['lists'].load_data()
+        self.show_frame('lists')
+
 
     def _show_tensions_for_patient(self, patient_id):
         """Muestra las tensiones filtradas por un paciente específico."""

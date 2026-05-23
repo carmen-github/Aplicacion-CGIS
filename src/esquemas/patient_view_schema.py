@@ -1,12 +1,13 @@
+from typing import Annotated
 from pydantic import BaseModel, Field, field_validator
 
 
 class PatientViewSchema(BaseModel):
     """Validación de formulario (vista): solo comprueba presencia y formato básico."""
-    nombre: str = Field(..., min_length=1)
-    apellido: str = Field(..., min_length=1)
-    genero: str = Field(..., min_length=1)
-    fechaNacimiento: str = Field(..., min_length=1)
+    nombre: Annotated[str, Field(min_length=1)]
+    apellido: Annotated[str, Field(min_length=1)]
+    genero: Annotated[str, Field(min_length=1)]
+    fechaNacimiento: Annotated[str, Field(min_length=1)]
 
     @field_validator('fechaNacimiento')
     @classmethod

@@ -4,10 +4,11 @@ from tkinter import ttk
 class MainMenuFrame(ttk.Frame):
     """Menú principal con botones grandes y centrados."""
 
-    def __init__(self, parent, on_patients, on_tensions):
+    def __init__(self, parent, on_patients, on_tensions, on_lists):
         super().__init__(parent, style='TFrame')
         self.on_patients = on_patients
         self.on_tensions = on_tensions
+        self.on_lists = on_lists
         self._create_ui()
 
     def _create_ui(self):
@@ -30,11 +31,15 @@ class MainMenuFrame(ttk.Frame):
 
         # Botón Pacientes
         btn_patients = self._make_card(buttons_container, "👤", "PACIENTES", self.on_patients)
-        btn_patients.pack(side=tk.LEFT, padx=50)
+        btn_patients.pack(side=tk.LEFT, padx=30)
 
         # Botón Tensiones
         btn_tensions = self._make_card(buttons_container, "📈", "TENSIONES", self.on_tensions)
-        btn_tensions.pack(side=tk.LEFT, padx=50)
+        btn_tensions.pack(side=tk.LEFT, padx=30)
+
+        #Botón Listas
+        btn_listas = self._make_card(buttons_container, "📋", "LISTAS", self.on_lists)
+        btn_listas.pack(side=tk.LEFT, padx=30)
 
     def _make_card(self, parent, icon, label, command):
         """Crea un botón grande con icono y texto."""
